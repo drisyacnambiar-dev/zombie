@@ -1,70 +1,266 @@
-# Getting Started with Create React App
+# Zombie Simulation
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Overview
 
-## Available Scripts
+This application simulates the spread of a zombie infection across an N x N grid.
 
-In the project directory, you can run:
+A zombie moves according to a predefined movement sequence. Whenever a zombie lands on a square occupied by a creature, that creature becomes a new zombie. Newly infected zombies perform the same movement sequence after the current zombie completes its movements. This process continues until all zombies have completed their movements.
 
-### `npm start`
+The simulation logs:
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+* Zombie movements
+* Infection events
+* Final zombie positions
+* Final creature positions
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
+## Technology
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+* JavaScript (ES6)
+* React (used as a simple interface to execute the simulation)
+* No external libraries required for the simulation logic
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Project Structure
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+src/
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+* App.js
+* Simulation/
 
-### `npm run eject`
+  * grid.js
+  * logger.js
+  * parser.js
+  * simulation.js
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## How to Run
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Install dependencies:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+npm install
+```
 
-## Learn More
+Start the application:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+npm start
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Open the application in the browser and click:
 
-### Code Splitting
+```text
+Run Simulation
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Simulation output can be viewed in the browser console.
 
-### Analyzing the Bundle Size
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Input Format
 
-### Making a Progressive Web App
+The simulation expects:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+1. Grid Size
+2. Initial Zombie Position
+3. Creature Positions
+4. Movement Sequence
 
-### Advanced Configuration
+Example:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```text
+4
+(3,1)
+(0,1)(1,2)(1,1)
+RDRU
+```
 
-### Deployment
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## Movement Rules
 
-### `npm run build` fails to minify
+Valid movement directions:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+* U = Up
+* D = Down
+* L = Left
+* R = Right
+
+Grid wrapping is supported.
+
+Example:
+
+```text
+Moving left from (0,4) on a 10x10 grid
+becomes
+(9,4)
+```
+
+---
+
+## Design Decisions
+
+### 1. Separation of Responsibilities
+
+The application is divided into several classes:
+
+#### Grid
+
+Responsible for:
+
+* Grid boundaries
+* Coordinate wrapping
+* Movement calculations
+
+#### Simulation
+
+Responsible for:
+
+* Zombie movement
+* Infection processing
+* Zombie queue management
+
+#### Parser
+
+Responsible for:
+
+* Input parsing
+* Validation
+* Conversion of text input into structured data
+
+#### Logger
+
+Responsible for:
+
+* Movement logs
+* Infection logs
+* Final simulation output
+
+This separation makes the code easier to maintain, test, and extend.
+
+---
+
+### 2. Creature Lookup Optimization
+
+Creatures are stored in a JavaScript Map using:
+
+```text
+x,y
+```
+
+as the key.
+
+Example:
+
+```text
+1,2
+```
+
+This provides near constant-time lookup when checking whether a zombie has landed on a creature.
+
+---
+
+### 3. Zombie Processing Order
+
+Newly infected zombies are added to the zombies array.
+
+Example:
+
+```javascript
+this.zombies.push(...)
+```
+
+The simulation uses:
+
+```javascript
+for (let id = 0; id < this.zombies.length; id++)
+```
+
+which naturally processes newly infected zombies in the required infection order.
+
+This avoids recursion and keeps the solution simple and scalable.
+
+---
+
+## Assumptions
+
+* Grid size is always greater than zero.
+* Creature coordinates are unique.
+* Creatures never move.
+* Zombies always use the same movement sequence.
+* Input directions only contain U, D, L, and R.
+* Coordinates supplied are within the grid boundaries.
+
+---
+
+## Testing
+
+The following scenarios were tested:
+
+### Movement
+
+* Up
+* Down
+* Left
+* Right
+
+### Grid Wrapping
+
+* Left edge to right edge
+* Right edge to left edge
+* Top edge to bottom edge
+* Bottom edge to top edge
+
+### Infection
+
+* Single infection
+* Multiple infections
+* Infection order
+
+### Validation
+
+* Invalid coordinates
+* Invalid directions
+* Invalid grid size
+
+---
+
+## Highlight of the Solution
+
+The strongest aspect of the solution is the zombie processing approach.
+
+Instead of using recursion or maintaining multiple queues, newly infected zombies are simply appended to the zombies array. Because the simulation iterates until all zombies have been processed, newly infected zombies automatically move in the correct infection order.
+
+This results in a simple, efficient, and easy-to-maintain implementation.
+
+---
+
+## AI Usage Disclosure
+
+AI tools were used to:
+
+* Review code quality
+* Discuss design approaches
+* Review edge cases
+* Improve documentation
+
+All code was reviewed, understood, and validated before inclusion in the final solution.
+
+---
+
+## Prompt History Summary
+
+Examples of prompts used:
+
+* Explain the zombie simulation requirements.
+* Review the grid wrapping logic.
+* Review the infection processing logic.
+* Suggest improvements to code structure.
+* Improve README documentation clarity.
+* Review edge cases and assumptions.
+
+AI assistance was used as a review and documentation aid rather than as a direct replacement for understanding or validating the implementation.
